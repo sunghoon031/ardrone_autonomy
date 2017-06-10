@@ -102,7 +102,7 @@ private:
   ros::Publisher mag_pub;
   ros::Publisher odo_pub;
 
-  tf::TransformBroadcaster tf_broad;
+  // Seong comment:   tf::TransformBroadcaster tf_broad;
 
   ros::ServiceServer toggle_cam_srv;
   ros::ServiceServer set_cam_channel_srv;
@@ -131,7 +131,7 @@ private:
    * Base: Should be COM
    */
   std::string tf_prefix, drone_frame_base, drone_frame_imu, drone_frame_front_cam, drone_frame_bottom_cam;
-  tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
+  // Seong comment:   tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
   // Huge part of IMU message is constant, let's fill'em once.
   sensor_msgs::Imu imu_msg;

@@ -60,16 +60,21 @@ ARDroneDriver::ARDroneDriver()
   set_flight_anim_srv = node_handle.advertiseService("ardrone/setflightanimation", SetFlightAnimationCallback);
   set_record_srv = node_handle.advertiseService("ardrone/setrecord", SetRecordCallback);
 
-  /* TF Frames */
-  std::string tf_prefix_key;
-  private_nh.searchParam("tf_prefix", tf_prefix_key);
-  private_nh.param(tf_prefix_key, tf_prefix, std::string(""));
-  private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
-  drone_frame_base = tf::resolve(tf_prefix, drone_frame_id + "_link");
-  drone_frame_imu = tf::resolve(tf_prefix, drone_frame_id + "_imu");
-  drone_frame_front_cam = tf::resolve(tf_prefix, drone_frame_id + "_frontcam");
-  drone_frame_bottom_cam = tf::resolve(tf_prefix, drone_frame_id + "_bottomcam");
-  tf_odom.frame_id_ = tf::resolve(tf_prefix, "odom");
+  /************************************************************************************
+  ** Seong commented the lines below to avoid ardrone_driver publishing to /tf node, **
+  ** which conflicts with SLAM.                                                      **
+  *************************************************************************************/
+
+//  /* TF Frames */
+//  std::string tf_prefix_key;
+//  private_nh.searchParam("tf_prefix", tf_prefix_key);
+//  private_nh.param(tf_prefix_key, tf_prefix, std::string(""));
+//  private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
+//  drone_frame_base = tf::resolve(tf_prefix, drone_frame_id + "_link");
+//  drone_frame_imu = tf::resolve(tf_prefix, drone_frame_id + "_imu");
+//  drone_frame_front_cam = tf::resolve(tf_prefix, drone_frame_id + "_frontcam");
+//  drone_frame_bottom_cam = tf::resolve(tf_prefix, drone_frame_id + "_bottomcam");
+//  tf_odom.frame_id_ = tf::resolve(tf_prefix, "odom");
 
   if (private_nh.hasParam("root_frame"))
   {
@@ -97,27 +102,31 @@ ARDroneDriver::ARDroneDriver()
   cinfo_hori = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
   cinfo_vert = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
 
+  /************************************************************************************
+  ** Seong commented the lines below to avoid ardrone_driver publishing to /tf node, **
+  ** which conflicts with SLAM.                                                      **
+  *************************************************************************************/
+
   // TF Stuff
 
-
-  // Front Cam to Base
-  // TODO(mani-monaj): Precise values for Drone1 & Drone2
-  tf_base_front = tf::StampedTransform(
-                    tf::Transform(
-                      tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
-                      tf::Vector3(0.21, 0.0, 0.0)),
-                    ros::Time::now(), drone_frame_base, drone_frame_front_cam);
-
-  // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
-  // TODO(mani-monaj): This should be different from Drone 1 & 2.
-  tf_base_bottom = tf::StampedTransform(
-                     tf::Transform(
-                       tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
-                       tf::Vector3(0.0, -0.02, 0.0)),
-                     ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
-
-  // reset odometry
-  odometry[0] = odometry[1] = 0;
+//  // Front Cam to Base
+//  // TODO(mani-monaj): Precise values for Drone1 & Drone2
+//  tf_base_front = tf::StampedTransform(
+//                    tf::Transform(
+//                      tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
+//                      tf::Vector3(0.21, 0.0, 0.0)),
+//                    ros::Time::now(), drone_frame_base, drone_frame_front_cam);
+//
+//  // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
+//  // TODO(mani-monaj): This should be different from Drone 1 & 2.
+//  tf_base_bottom = tf::StampedTransform(
+//                     tf::Transform(
+//                       tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
+//                       tf::Vector3(0.0, -0.02, 0.0)),
+//                     ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
+//
+//  // reset odometry
+//  odometry[0] = odometry[1] = 0;
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -162,7 +171,7 @@ void ARDroneDriver::run()
         {
           ROS_WARN("The AR-Drone has a suspicious Firmware number. It usually means the network link is unreliable.");
         }
-        ROS_DEBUG_STREAM("Using " << tf_prefix << " to prefix TF frames.");
+        // Seong comment:  ROS_DEBUG_STREAM("Using " << tf_prefix << " to prefix TF frames.");
       }
     }
     else
@@ -199,10 +208,22 @@ void ARDroneDriver::run()
           // This function is defined in the template NavdataMessageDefinitions.h template file
           PublishNavdataTypes(navdata_raw, navdata_receive_time);
           PublishNavdata(navdata_raw, navdata_receive_time);
-          PublishOdometry(navdata_raw, navdata_receive_time);
+
+          /************************************************************************************
+          ** Seong commented the lines below to avoid ardrone_driver publishing to /tf node, **
+          ** which conflicts with SLAM.                                                      **
+          *************************************************************************************/
+
+          //PublishOdometry(navdata_raw, navdata_receive_time);
         }
       }
-      if (freq_dev == 0) PublishTF();
+
+      /************************************************************************************
+      ** Seong commented the lines below to avoid ardrone_driver publishing to /tf node, **
+      ** which conflicts with SLAM.                                                      **
+      *************************************************************************************/
+
+      // if (freq_dev == 0) PublishTF();
 
       // (looprate / 5)Hz  TF publish
       // TODO(mani-monaj): Make TF publish rate fixed
@@ -673,16 +694,22 @@ void ARDroneDriver::PublishNavdata(const navdata_unpacked_t &navdata_raw, const 
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_SOURCE
 
+
 void ARDroneDriver::PublishTF()
 {
+    /* Seong comment
   tf_base_front.stamp_ = ros::Time::now();
   tf_base_bottom.stamp_ = ros::Time::now();
   tf_broad.sendTransform(tf_base_front);
   tf_broad.sendTransform(tf_base_bottom);
+  */
 }
+
+
 
 void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
+    /* Seong comment
   if (last_receive_time.isValid())
   {
     double delta_t = (navdata_receive_time - last_receive_time).toSec();
@@ -727,7 +754,9 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
   tf_odom.setOrigin(t);
   tf_odom.setRotation(q);
   tf_broad.sendTransform(tf_odom);
+  */
 }
+
 
 void ControlCHandler(int signal)
 {
