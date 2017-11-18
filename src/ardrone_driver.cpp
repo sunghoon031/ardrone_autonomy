@@ -541,6 +541,13 @@ void ARDroneDriver::PublishVideo()
       cinfo_msg_hori.height = D2_STREAM_HEIGHT;
       image_pub.publish(image_msg, cinfo_msg_hori);  // /ardrone
       hori_pub.publish(image_msg, cinfo_msg_hori);
+
+      // Seong addition:
+      if (image_sent_timestamp == 0)
+      {
+          image_sent_timestamp = ros::Time::now().nsec;
+          std::cout << "image_sent_timestamp = " << std::setprecision(20) << image_sent_timestamp << std::endl;
+      }
     }
     else if (cam_state == ZAP_CHANNEL_VERT)
     {

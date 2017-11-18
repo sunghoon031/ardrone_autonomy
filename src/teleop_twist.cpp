@@ -164,6 +164,7 @@ void LandCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_land = true;
+  std::cout << "Land at "<< std::setprecision(20) << ros::Time::now().nsec << std::endl;
   vp_os_mutex_unlock(&twist_lock);
 }
 
