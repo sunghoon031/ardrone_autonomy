@@ -133,9 +133,6 @@ private:
   std::string tf_prefix, drone_frame_base, drone_frame_imu, drone_frame_front_cam, drone_frame_bottom_cam;
   // Seong comment:   tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
-  // Seong addition:
-  uint32_t image_sent_timestamp = 0;
-  uint32_t joystick_received_timestamp = 0;
   // Huge part of IMU message is constant, let's fill'em once.
   sensor_msgs::Imu imu_msg;
   geometry_msgs::Vector3Stamped mag_msg;
